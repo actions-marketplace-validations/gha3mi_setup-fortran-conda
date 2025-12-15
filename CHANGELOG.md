@@ -1,3 +1,104 @@
+## [v0.10.13](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.12...v0.10.13) - 2025-12-12
+
+
+### Others
+
+* chore(deps): bump @actions/exec from 1.1.1 to 2.0.0 (#112) ([a214736](https://github.com/gha3mi/setup-fortran-conda/commit/a2147363be7ba12b8ac4e690a59d6fc8fcfab803)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump peter-evans/create-pull-request from 7.0.11 to 8.0.0 (#113) ([d1557b7](https://github.com/gha3mi/setup-fortran-conda/commit/d1557b7b33427bcd0303c9493b6b919a39a2c279)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump JamesIves/github-pages-deploy-action (#114) ([6bea952](https://github.com/gha3mi/setup-fortran-conda/commit/6bea952b9894c6e43a9dc7562f0083cadb27b3a7)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump @actions/core from 1.11.1 to 2.0.1 (#115) ([a9a4a66](https://github.com/gha3mi/setup-fortran-conda/commit/a9a4a6662c2fefe005e12f90a91dc1b3efef7cd0)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+### Contributors
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+
+Full Changelog: [v0.10.12...v0.10.13](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.12...v0.10.13)
+
+## [v0.10.12](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.11...v0.10.12) - 2025-12-09
+
+
+### Others
+
+* chore(deps): bump peter-evans/create-pull-request from 7.0.9 to 7.0.11 (#109) ([88da837](https://github.com/gha3mi/setup-fortran-conda/commit/88da837e1e7623489d8da7fef56fc5f92ec5920d)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+### Contributors
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+
+Full Changelog: [v0.10.11...v0.10.12](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.11...v0.10.12)
+
+## [v0.10.11](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.10...v0.10.11) - 2025-12-03
+
+
+### Others
+
+* Update README.md status table [ci skip] (#106) ([f072bee](https://github.com/gha3mi/setup-fortran-conda/commit/f072bee361cb8126ea84cf362581ef5268afc090)) by [@gha3mi](https://github.com/gha3mi)
+* chore(deps): bump actions/checkout from 6.0.0 to 6.0.1 (#107) ([4d95b2c](https://github.com/gha3mi/setup-fortran-conda/commit/4d95b2cdb1aaa98747d537e69a377499c63346ff)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* Update README.md status table [ci skip] (#108) ([4ea0a18](https://github.com/gha3mi/setup-fortran-conda/commit/4ea0a18739e7bbf8e408a8c77dff4d4ef17b83f6)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.10.10...v0.10.11](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.10...v0.10.11)
+
+## [v0.10.10](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.9...v0.10.10) - 2025-11-25
+
+
+### Fixes
+
+* fix: lfortran setup on macOS (Fixes #105) ([b7318bc](https://github.com/gha3mi/setup-fortran-conda/commit/b7318bc1145f7ed1be6e79d8284cbe441aa6e87d)) by [@gha3mi](https://github.com/gha3mi)
+
+### Others
+
+* Update README.md status table [ci skip] (#103) ([c7167f1](https://github.com/gha3mi/setup-fortran-conda/commit/c7167f1b6309c390b01857ab34d19e3c3ee79bbe)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.10.9...v0.10.10](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.9...v0.10.10)
+
+## [v0.10.9](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.8...v0.10.9) - 2025-11-25
+
+
+### Fixes
+
+* fix: complete status-table badges (#81) ([3cd802e](https://github.com/gha3mi/setup-fortran-conda/commit/3cd802e87e712b5643715e9b7e2db44951e1a7c8)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.10.8...v0.10.9](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.8...v0.10.9)
+
+## [v0.10.8](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.7...v0.10.8) - 2025-11-25
+
+
+### Others
+
+* chore(deps): bump actions/checkout from 5.0.1 to 6.0.0 (#99) ([2261f5a](https://github.com/gha3mi/setup-fortran-conda/commit/2261f5a9ae2133c7b916130ac71676412b866bc1)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump peter-evans/create-pull-request from 7.0.8 to 7.0.9 (#100) ([9b7119d](https://github.com/gha3mi/setup-fortran-conda/commit/9b7119de887a020ef96b9782b32707434aa6e492)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+### Contributors
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+
+Full Changelog: [v0.10.7...v0.10.8](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.7...v0.10.8)
+
 ## [v0.10.7](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.6...v0.10.7) - 2025-11-19
 
 

@@ -1,3 +1,88 @@
+## [v0.11.5](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.4...v0.11.5) - 2026-01-29
+
+
+### Others
+
+* chore: set generate-status-meson to true in CI-CD.yml ([ed7d8f7](https://github.com/gha3mi/setup-fortran-conda/commit/ed7d8f777b8dc479eccdbcbeecbb9f4f6019fabf)) by [@gha3mi](https://github.com/gha3mi)
+* docs: fix typo ([ac6d1c9](https://github.com/gha3mi/setup-fortran-conda/commit/ac6d1c97681938dd6997cfb612901c30e146bd49)) by [@gha3mi](https://github.com/gha3mi)
+* chore: update default nvfortran version to 26.1 ([f63a9e9](https://github.com/gha3mi/setup-fortran-conda/commit/f63a9e92e6d309f7360f0e575b90f9b19635253e)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.11.4...v0.11.5](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.4...v0.11.5)
+
+## [v0.11.4](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.3...v0.11.4) - 2026-01-29
+
+
+### Others
+
+* chore: update CI-CD.yml ([#133](https://github.com/gha3mi/setup-fortran-conda/pull/133)) by [@gha3mi](https://github.com/gha3mi)
+* chore(deps): bump @actions/core from 2.0.2 to 3.0.0 ([#132](https://github.com/gha3mi/setup-fortran-conda/pull/132)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump @actions/exec from 2.0.0 to 3.0.0 ([#131](https://github.com/gha3mi/setup-fortran-conda/pull/131)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+### Contributors
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.11.3...v0.11.4](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.3...v0.11.4)
+
+## [v0.11.3](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.2...v0.11.3) - 2026-01-27
+
+
+### Fixes
+
+* fix: dyld: Symbol not found: _libiconv on macOS ([#128](https://github.com/gha3mi/setup-fortran-conda/pull/128)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.11.2...v0.11.3](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.2...v0.11.3)
+
+## [v0.11.2](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.1...v0.11.2) - 2026-01-25
+
+
+### Others
+
+* chore: update cmake configuration ([#127](https://github.com/gha3mi/setup-fortran-conda/pull/127)) by [@gha3mi](https://github.com/gha3mi)
+* chore: remove lfortran debug flags from cmake ([#126](https://github.com/gha3mi/setup-fortran-conda/pull/126)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.11.1...v0.11.2](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.1...v0.11.2)
+
+## [v0.11.1](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.0...v0.11.1) - 2026-01-25
+
+
+### Others
+
+* chore(deps): bump actions/checkout from 6.0.1 to 6.0.2 ([#123](https://github.com/gha3mi/setup-fortran-conda/pull/123)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump peter-evans/create-pull-request from 8.0.0 to 8.1.0 ([#122](https://github.com/gha3mi/setup-fortran-conda/pull/122)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump conda-incubator/setup-miniconda from 3.2.0 to 3.3.0 ([#121](https://github.com/gha3mi/setup-fortran-conda/pull/121)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump JamesIves/github-pages-deploy-action from 4.7.6 to 4.8.0 ([#120](https://github.com/gha3mi/setup-fortran-conda/pull/120)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump @actions/core from 2.0.1 to 2.0.2 ([#119](https://github.com/gha3mi/setup-fortran-conda/pull/119)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+### Contributors
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+
+
+
+Full Changelog: [v0.11.0...v0.11.1](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.0...v0.11.1)
+
 ## [v0.11.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.10.13...v0.11.0) - 2025-12-26
 
 

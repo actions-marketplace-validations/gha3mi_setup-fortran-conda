@@ -1,10 +1,33 @@
 # Setup Fortran with Conda
 
-A GitHub Action that sets up a Fortran development environment using Conda. Inspired by [Conda + Fortran](https://degenerateconic.com/conda-plus-fortran.html).
+A GitHub Action that sets up a Fortran development environment using Conda where available and vendor packages where needed. Inspired by [Conda + Fortran](https://degenerateconic.com/conda-plus-fortran.html).
+
+# Table of Contents
+- [Setup Fortran with Conda](#setup-fortran-with-conda)
+- [Table of Contents](#table-of-contents)
+  - [Supported Compiler Configurations](#supported-compiler-configurations)
+    - [Ubuntu](#ubuntu)
+    - [macOS](#macos)
+    - [Windows](#windows)
+  - [Simple Usage](#simple-usage)
+  - [✅ CI Status](#-ci-status)
+  - [📋 Workflow Example](#-workflow-example)
+    - [🔐 IMPORTANT NOTES](#-important-notes)
+    - [Overview](#overview)
+    - [README Integration](#readme-integration)
+    - [Dependency Graph Integration](#dependency-graph-integration)
+    - [Job Breakdown](#job-breakdown)
+    - [MPI Support](#mpi-support)
+  - [🚀 Release Automation](#-release-automation)
+    - [Features](#features)
+    - [Requirements](#requirements)
+    - [Usage](#usage)
+    - [Recommended Workflow](#recommended-workflow)
+  - [🔗 See Also](#-see-also)
 
 ## Supported Compiler Configurations
 
-The selected Fortran compiler is installed along with the corresponding C and C++ compilers, as well as `fpm`, `cmake`, `ninja` and `meson`. Additional packages can be installed using the `extra-packages` input.
+The selected Fortran compiler is installed along with the corresponding C and C++ compilers, as well as `fpm`, `cmake`, `ninja`, `pkg-config` and `meson`. Additional packages can be installed using the `extra-packages` input.
 
 ### Ubuntu
 
@@ -15,6 +38,8 @@ The selected Fortran compiler is installed along with the corresponding C and C+
 | lfortran         | clang      | clang++      |
 | flang, flang-new | clang      | clang++      |
 | nvfortran        | nvc        | nvc++        |
+| aocc(flang)      | aocc(clang) | aocc(clang++) |
+| aomp(flang)      | aomp(clang) | aomp(clang++) |
 
 ### macOS
 
@@ -56,41 +81,54 @@ jobs:
         - {os: ubuntu-latest,  compiler: ifx,       compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: flang-new, compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: nvfortran, compiler-version: "", extra-packages: ""}
-        - {os: ubuntu-latest,  compiler: lfortran,  compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: aocc,      compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: aomp,      compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: lfortran,  compiler-version: "", extra-packages: "", fpm-version: "0.12.0"}
         - {os: windows-latest, compiler: gfortran,  compiler-version: "", extra-packages: ""}
-        - {os: windows-latest, compiler: ifx,       compiler-version: "", extra-packages: ""}
+        - {os: windows-latest, compiler: ifx,       compiler-version: "", extra-packages: "", fpm-version: "0.12.0"}
         - {os: windows-latest, compiler: flang-new, compiler-version: "", extra-packages: ""}
-        - {os: windows-latest, compiler: lfortran,  compiler-version: "", extra-packages: ""}
+        - {os: windows-latest, compiler: lfortran,  compiler-version: "", extra-packages: "", fpm-version: "0.12.0"}
         - {os: macos-latest,   compiler: gfortran,  compiler-version: "", extra-packages: ""}
-        - {os: macos-latest,   compiler: lfortran,  compiler-version: "", extra-packages: ""}
+        - {os: macos-latest,   compiler: lfortran,  compiler-version: "", extra-packages: "", fpm-version: "0.12.0"}
 
     steps:
       - name: Setup Fortran
         uses: gha3mi/setup-fortran-conda@latest
         with:
-          platform: ${{ matrix.os }}
           compiler: ${{ matrix.compiler }}
           compiler-version: ${{ matrix.compiler-version }}
           extra-packages: ${{ matrix.extra-packages }}
+          fpm-version: ${{ matrix.fpm-version }}
 
       - name: fpm test (debug)
-        run: fpm test --compiler ${{ matrix.compiler }} --profile debug
+        run: fpm test --compiler ${{ env.FPM_FC }} --profile debug
 
       - name: fpm test (release)
-        run: fpm test --compiler ${{ matrix.compiler }} --profile release
+        run: fpm test --compiler ${{ env.FPM_FC }} --profile release
 ```
 
 ## ✅ CI Status
 
 <!-- STATUS:setup-fortran-conda:START -->
-| Compiler   | macos | ubuntu | windows |
-|------------|----------------------|----------------------|----------------------|
-| `flang-new` | - | fpm ✅  cmake ✅  meson ✅ | fpm ❌  cmake ✅  meson ✅ |
-| `gfortran` | fpm ✅  cmake ✅  meson ✅ | fpm ✅  cmake ✅  meson ✅ | fpm ✅  cmake ✅  meson ✅ |
-| `ifx` | - | fpm ✅  cmake ✅  meson ✅ | fpm ✅  cmake ✅  meson ✅ |
-| `lfortran` | fpm ✅  cmake ✅ | fpm ✅  cmake ✅ | fpm ✅  cmake ✅ |
-| `mpifort` | mpi_fpm ✅ | mpi_fpm ✅ | - |
-| `nvfortran` | - | fpm ✅  cmake ✅  meson ✅ | - |
+
+| OS | Compiler | Version | fpm | cmake | meson |
+| --- | --- | ---: | :---: | :---: | :---: |
+| ubuntu 24.04 | `aocc` | 5.2.0 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| ubuntu 24.04 | `aomp` | 23.0-0 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| ubuntu 24.04 | `flang-new` | 22.1.7 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| ubuntu 24.04 | `gfortran` | 15.2.0 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| ubuntu 24.04 | `ifx` | 2026.0.0 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| ubuntu 24.04 | `lfortran` | 0.63.0 | 0.12.0 ✅ | 4.3.3 ✅ | — |
+| ubuntu 24.04 | `mpifort` | Not found | Not found ✅ | — | — |
+| ubuntu 24.04 | `nvfortran` | 26.3 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| macos 15 | `gfortran` | 15.2.0 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| macos 15 | `lfortran` | 0.63.0 | 0.12.0 ✅ | 4.3.3 ✅ | — |
+| macos 15 | `mpifort` | Not found | Not found ✅ | — | — |
+| windows 2025 | `flang-new` | 22.1.7 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| windows 2025 | `gfortran` | 15.2.0 | 0.13.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| windows 2025 | `ifx` | 2026.0.0 | 0.12.0 ✅ | 4.3.3 ✅ | 1.11.1 ✅ |
+| windows 2025 | `lfortran` | 0.54.0 | 0.12.0 ✅ | 4.3.3 ✅ | — |
+
 <!-- STATUS:setup-fortran-conda:END -->
 
 - [STATUS.md (FPM)](https://github.com/gha3mi/setup-fortran-conda/blob/status-fpm/STATUS.md)
@@ -103,7 +141,7 @@ jobs:
 
 > ⚠️ **Use your own name and email!** Don’t copy the example values.
 
-To enable automatic updates to the CI status table in `README.md` via the `update_readme_table` job:
+To enable automatic updates to generated `README.md` content via the `update_readme_table`, `update_readme_fpm_deps`, or `update_readme_fpm_modules` jobs:
 
 1. Create a GitHub **Personal Access Token (PAT)** with `repo` scope.
 2. Add it to your repo secrets, e.g. `GH_PAT`.
@@ -126,7 +164,7 @@ This example automates Fortran CI/CD:
 
 * 📦 **Fortran compiler setup**:
 
-  * Supports: `gfortran`, `ifx`, `lfortran`, `flang-new`, `nvfortran`
+  * Supports: `gfortran`, `ifx`, `lfortran`, `flang-new`, `nvfortran`, `aocc`, `aomp`
 
 * 🖥️ **Cross-platform testing**:
 
@@ -149,6 +187,12 @@ This example automates Fortran CI/CD:
   * Injects summary into `README.md`
   * creates PRs to update the status table in `README.md`
 
+* 🧭 **README Dependency Graphs**:
+
+  * Injects dependency graphs into `README.md`
+  * Supports package dependency graphs with [`fpm-deps`](https://github.com/ivan-pi/fpm-deps)
+  * Supports module dependency graphs with [`fpm-modules`](https://github.com/davidpfister/fpm-modules)
+
 * 🧹 **Linting**:
 
   * Runs Fortitude check
@@ -162,20 +206,42 @@ To enable automatic CI status table injection, add the following to your `README
 &lt;!-- STATUS:setup-fortran-conda:END --&gt;
 </pre>
 
+### Dependency Graph Integration
+
+To enable automatic package dependency graph injection with `fpm-deps`, add the following to your `README.md`:
+
+<pre>
+&lt;!-- FPM-DEPS:setup-fortran-conda:START --&gt;
+&lt;!-- FPM-DEPS:setup-fortran-conda:END --&gt;
+</pre>
+
+To enable automatic module dependency graph injection with `fpm-modules`, add the following to your `README.md`:
+
+<pre>
+&lt;!-- FPM-MODULES:setup-fortran-conda:START --&gt;
+&lt;!-- FPM-MODULES:setup-fortran-conda:END --&gt;
+</pre>
+
+Then use one job with `update-readme-dependencies: fpm-deps` for an fpm package dependency graph, and a separate job with `update-readme-dependencies: fpm-modules` for a Fortran module dependency graph. This feature currently runs on Linux runners and uses `gfortran` by default when no `compiler` input is provided.
+
+Extra generator options can be passed as a one-line string with `dependency-graph-options`.
+
 ### Job Breakdown
 
-| Job Name              | Description                                                      |
-| --------------------- | ---------------------------------------------------------------- |
-| `test_fpm`            | Run `fpm` tests (debug + release) for each OS/compiler           |
-| `test_cmake`          | Run CMake/Ninja builds and tests                                 |
-| `test_meson`          | Run Meson builds and tests                                       |
-| `doc_ford`            | Build and deploy FORD-generated docs                             |
-| `doc_doxygen`         | Build and deploy Doxygen-generated docs                          |
-| `status_fpm`          | Generate `STATUS.md` with fpm test results                       |
-| `status_cmake`        | Generate `STATUS.md` with cmake test results                     |
-| `status_meson`        | Generate `STATUS.md` with meson test results                     |
-| `update_readme_table` | Inject CI summary table into `README.md` and open a pull request |
-| `linter_fortitude`    | Run [Fortitude](https://github.com/PlasmaFAIR/fortitude) linter  |
+| Job Name                     | Description                                                      |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `test_fpm`                   | Run `fpm` tests (debug + release) for each OS/compiler           |
+| `test_cmake`                 | Run CMake/Ninja builds and tests                                 |
+| `test_meson`                 | Run Meson builds and tests                                       |
+| `doc_ford`                   | Build and deploy FORD-generated docs                             |
+| `doc_doxygen`                | Build and deploy Doxygen-generated docs                          |
+| `status_fpm`                 | Generate `STATUS.md` with fpm test results                       |
+| `status_cmake`               | Generate `STATUS.md` with cmake test results                     |
+| `status_meson`               | Generate `STATUS.md` with meson test results                     |
+| `update_readme_table`        | Inject CI summary table into `README.md` and open a pull request |
+| `update_readme_fpm_deps`     | Inject fpm package dependency graph into `README.md` and open a pull request |
+| `update_readme_fpm_modules`  | Inject Fortran module dependency graph into `README.md` and open a pull request |
+| `linter_fortitude`           | Run [Fortitude](https://github.com/PlasmaFAIR/fortitude) linter  |
 
 modify this example workflow file to your needs, and save it as `.github/workflows/CI-CD.yml` in your repository:
 
@@ -188,6 +254,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
 
@@ -203,28 +270,30 @@ jobs:
         - {os: ubuntu-latest,  compiler: ifx,       compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: flang-new, compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: nvfortran, compiler-version: "", extra-packages: ""}
-        - {os: ubuntu-latest,  compiler: lfortran,  compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: aocc,      compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: aomp,      compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: lfortran,  compiler-version: "", extra-packages: "", fpm-version: "0.12.0"}
         - {os: windows-latest, compiler: gfortran,  compiler-version: "", extra-packages: ""}
-        - {os: windows-latest, compiler: ifx,       compiler-version: "", extra-packages: ""}
+        - {os: windows-latest, compiler: ifx,       compiler-version: "", extra-packages: "", fpm-version: "0.12.0"}
         - {os: windows-latest, compiler: flang-new, compiler-version: "", extra-packages: ""}
-        - {os: windows-latest, compiler: lfortran,  compiler-version: "", extra-packages: ""}
+        - {os: windows-latest, compiler: lfortran,  compiler-version: "", extra-packages: "", fpm-version: "0.12.0"}
         - {os: macos-latest,   compiler: gfortran,  compiler-version: "", extra-packages: ""}
-        - {os: macos-latest,   compiler: lfortran,  compiler-version: "", extra-packages: ""}
+        - {os: macos-latest,   compiler: lfortran,  compiler-version: "", extra-packages: "", fpm-version: "0.12.0"}
 
     steps:
       - name: Setup Fortran
         uses: gha3mi/setup-fortran-conda@latest
         with:
-          platform: ${{ matrix.os }}
           compiler: ${{ matrix.compiler }}
           compiler-version: ${{ matrix.compiler-version }}
           extra-packages: ${{ matrix.extra-packages }}
+          fpm-version: ${{ matrix.fpm-version }}
 
       - name: fpm test (debug)
-        run: fpm test --compiler ${{ matrix.compiler }} --profile debug --verbose
+        run: fpm test --compiler ${{ env.FPM_FC }} --profile debug --verbose
 
       - name: fpm test (release)
-        run: fpm test --compiler ${{ matrix.compiler }} --profile release --verbose
+        run: fpm test --compiler ${{ env.FPM_FC }} --profile release --verbose
 
   # Run CMake + Ninja build/tests across OS/compiler matrix
   test_cmake:
@@ -238,6 +307,8 @@ jobs:
         - {os: ubuntu-latest,  compiler: ifx,       compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: flang-new, compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: nvfortran, compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: aocc,      compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: aomp,      compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: lfortran,  compiler-version: "", extra-packages: ""}
         - {os: windows-latest, compiler: gfortran,  compiler-version: "", extra-packages: ""}
         - {os: windows-latest, compiler: ifx,       compiler-version: "", extra-packages: ""}
@@ -250,20 +321,19 @@ jobs:
       - name: Setup Fortran
         uses: gha3mi/setup-fortran-conda@latest
         with:
-          platform: ${{ matrix.os }}
           compiler: ${{ matrix.compiler }}
           compiler-version: ${{ matrix.compiler-version }}
           extra-packages: ${{ matrix.extra-packages }}
 
       - name: cmake test (debug)
         run: |
-          cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_Fortran_COMPILER=${{ matrix.compiler }} -G Ninja
+          cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_Fortran_COMPILER=${{ env.CMAKE_Fortran_COMPILER }} -G Ninja
           cmake --build build/debug
           ctest --test-dir build/debug --output-on-failure
 
       - name: cmake test (release)
         run: |
-          cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release -DCMAKE_Fortran_COMPILER=${{ matrix.compiler }} -G Ninja
+          cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release -DCMAKE_Fortran_COMPILER=${{ env.CMAKE_Fortran_COMPILER }} -G Ninja
           cmake --build build/release
           ctest --test-dir build/release --output-on-failure
 
@@ -279,6 +349,8 @@ jobs:
         - {os: ubuntu-latest,  compiler: ifx,       compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: flang-new, compiler-version: "", extra-packages: ""}
         - {os: ubuntu-latest,  compiler: nvfortran, compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: aocc,      compiler-version: "", extra-packages: ""}
+        - {os: ubuntu-latest,  compiler: aomp,      compiler-version: "", extra-packages: ""}
         - {os: windows-latest, compiler: gfortran,  compiler-version: "", extra-packages: ""}
         - {os: windows-latest, compiler: ifx,       compiler-version: "", extra-packages: ""}
         - {os: windows-latest, compiler: flang-new, compiler-version: "", extra-packages: ""}
@@ -288,7 +360,6 @@ jobs:
       - name: Setup Fortran
         uses: gha3mi/setup-fortran-conda@latest
         with:
-          platform: ${{ matrix.os }}
           compiler: ${{ matrix.compiler }}
           compiler-version: ${{ matrix.compiler-version }}
           extra-packages: ${{ matrix.extra-packages }}
@@ -379,13 +450,53 @@ jobs:
     if: |
       always() &&
       github.ref != 'refs/heads/update-readme-table'
-    needs: [status_fpm, status_cmake, status_meson]
+    needs: [test_fpm, test_cmake, test_meson]
     runs-on: ubuntu-latest
     steps:
       - name: Update README status
         uses: gha3mi/setup-fortran-conda@latest
         with:
           update-readme-table: true
+          update-readme-token: ${{ secrets.GH_PAT }}   # Update with your GitHub personal access token
+          update-readme-user-name: "Your Name" # Update with your name
+          update-readme-user-email: "you@example.com"  # Update with your email
+
+  # Inject fpm package dependency graph into README.md
+  update_readme_fpm_deps:
+    name: Update README.md fpm dependency graph
+    if: |
+      always() &&
+      github.ref != 'refs/heads/update/readme-fpm-deps'
+    needs: test_fpm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update README fpm dependency graph
+        uses: gha3mi/setup-fortran-conda@latest
+        with:
+          update-readme-dependencies: fpm-deps
+          dependency-graph-working-directory: .
+          dependency-graph-readme-file: README.md
+          dependency-graph-options: ""
+          update-readme-token: ${{ secrets.GH_PAT }}   # Update with your GitHub personal access token
+          update-readme-user-name: "Your Name" # Update with your name
+          update-readme-user-email: "you@example.com"  # Update with your email
+
+  # Inject Fortran module dependency graph into README.md
+  update_readme_fpm_modules:
+    name: Update README.md module dependency graph
+    if: |
+      always() &&
+      github.ref != 'refs/heads/update/readme-fpm-modules'
+    needs: test_fpm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update README module dependency graph
+        uses: gha3mi/setup-fortran-conda@latest
+        with:
+          update-readme-dependencies: fpm-modules
+          dependency-graph-working-directory: .
+          dependency-graph-readme-file: README.md
+          dependency-graph-options: "-x fpm,daglib"
           update-readme-token: ${{ secrets.GH_PAT }}   # Update with your GitHub personal access token
           update-readme-user-name: "Your Name" # Update with your name
           update-readme-user-email: "you@example.com"  # Update with your email
@@ -402,7 +513,7 @@ jobs:
           fortitude-settings: "--output-format github"
 ```
 
-If `compiler-version` is set to an empty string `""`, the latest version will be installed.
+If `compiler-version` is set to an empty string `""` or `latest`, the latest version will be installed.
 
 ### MPI Support
 
@@ -423,7 +534,6 @@ test_mpi_fpm:
     - name: Setup Fortran
       uses: gha3mi/setup-fortran-conda@latest
       with:
-        platform: ${{ matrix.os }}
         compiler: ${{ matrix.compiler }}
         compiler-version: ${{ matrix.compiler-version }}
         extra-packages: ${{ matrix.extra-packages }}

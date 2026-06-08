@@ -1,3 +1,214 @@
+## [v0.17.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.16.0...v0.17.0) - 2026-05-29
+
+
+### Features
+
+* feat: add README dependency graphs via fpm-deps and fpm-modules ([a08a0609](https://github.com/gha3mi/setup-fortran-conda/commit/a08a0609d159aa98953b7359d53c7ea21b1f6c4b)) by [@gha3mi](https://github.com/gha3mi)
+* feat: rename AOCC compiler support to aocc ([f78b657b](https://github.com/gha3mi/setup-fortran-conda/commit/f78b657bc5609b3c6b8a17f2d7ef7e703ad3f9c4)) by [@gha3mi](https://github.com/gha3mi)
+* feat: add AOMP compiler support ([050a8b13](https://github.com/gha3mi/setup-fortran-conda/commit/050a8b13d92afc237d457cd95d758479c7cc523c)) by [@gha3mi](https://github.com/gha3mi)
+
+### Others
+
+* docs: fix README ([c59bdb3e](https://github.com/gha3mi/setup-fortran-conda/commit/c59bdb3e15b65034e5875ba9e82e650e98d31df5)) by [@gha3mi](https://github.com/gha3mi)
+* Update README.md status table [ci skip] (#174) ([ce437640](https://github.com/gha3mi/setup-fortran-conda/commit/ce43764097a629c61055958974aab5227479acdb)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.16.0...v0.17.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.16.0...v0.17.0)
+
+## [v0.16.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.15.3...v0.16.0) - 2026-05-25
+
+
+### Features
+
+* feat: add support for AMD AOCC compiler (amdflang) ([f50e8015](https://github.com/gha3mi/setup-fortran-conda/commit/f50e8015665427b4124ee842665b0f977f882f8f)) by [@gha3mi](https://github.com/gha3mi)
+
+### Fixes
+
+* fix: add S241 to ignored Fortitude checks ([c5593dd2](https://github.com/gha3mi/setup-fortran-conda/commit/c5593dd24966cc53d75f82aa67720d6e9c82216d)) by [@gha3mi](https://github.com/gha3mi)
+* fix: flang setup ([2e2a8dbb](https://github.com/gha3mi/setup-fortran-conda/commit/2e2a8dbbe2d255a94082dd66d976f92404eb19a2)) by [@gha3mi](https://github.com/gha3mi)
+
+### Others
+
+* Update README.md status table [ci skip] (#169) ([42571d4e](https://github.com/gha3mi/setup-fortran-conda/commit/42571d4e2d837fdfc6c79b799be2ef57f99114dc)) by [@gha3mi](https://github.com/gha3mi)
+* Update README.md status table [ci skip] (#172) ([91f651d7](https://github.com/gha3mi/setup-fortran-conda/commit/91f651d7a3b03d5d75b0dafdeb462cdc306a1b02)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.15.3...v0.16.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.15.3...v0.16.0)
+
+## [v0.15.3](https://github.com/gha3mi/setup-fortran-conda/compare/v0.15.2...v0.15.3) - 2026-05-03
+
+
+### Fixes
+
+* fix: install git in the Conda environment for LFortran setup on macOS ([0195c87a](https://github.com/gha3mi/setup-fortran-conda/commit/0195c87a26ffb7f1a5e5f3f61257f0b32a3e3acc)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.15.2...v0.15.3](https://github.com/gha3mi/setup-fortran-conda/compare/v0.15.2...v0.15.3)
+
+## [v0.15.2](https://github.com/gha3mi/setup-fortran-conda/compare/v0.15.1...v0.15.2) - 2026-04-26
+
+
+### Others
+
+* chore(deps): bump peter-evans/create-pull-request from 8.1.0 to 8.1.1 (#163) ([c6ee8acd](https://github.com/gha3mi/setup-fortran-conda/commit/c6ee8acdeb3f90311790b290acf0a928c8a774d6)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump @actions/core from 3.0.0 to 3.0.1 (#164) ([3ab7b995](https://github.com/gha3mi/setup-fortran-conda/commit/3ab7b9950cdd681794a3397c25e270507dbb2281)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump conda-incubator/setup-miniconda from 3.3.0 to 4.0.0 (#165) ([d49c5213](https://github.com/gha3mi/setup-fortran-conda/commit/d49c52132a293ba0bbc1737295d00293bec82000)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump conda-incubator/setup-miniconda from 4.0.0 to 4.0.1 (#166) ([63ee44be](https://github.com/gha3mi/setup-fortran-conda/commit/63ee44be063ccee7caea666a5ba664ada5d9135a)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* README: ifx2026.0.0, flang22.1.4, lfortran0.63, cmake4.3.2, meson1.11.1 [ci skip] (#162) ([7439436b](https://github.com/gha3mi/setup-fortran-conda/commit/7439436b8b2672f7f6c631cc99d3d4cf90b9713f)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.15.1...v0.15.2](https://github.com/gha3mi/setup-fortran-conda/compare/v0.15.1...v0.15.2)
+
+## [v0.15.1](https://github.com/gha3mi/setup-fortran-conda/compare/v0.15.0...v0.15.1) - 2026-04-07
+
+
+### Others
+
+* Update README.md status table [ci skip] (#156) ([754eb5fa](https://github.com/gha3mi/setup-fortran-conda/commit/754eb5fae00055923f0d0621dc4b0027a8827ad0)) by [@gha3mi](https://github.com/gha3mi)
+* Update README.md status table [ci skip] (#157) ([d2266017](https://github.com/gha3mi/setup-fortran-conda/commit/d2266017f29dbde1c76d2e82da3eb3383c9bfab5)) by [@gha3mi](https://github.com/gha3mi)
+* Update README.md status table [ci skip] (#158) ([c2c07215](https://github.com/gha3mi/setup-fortran-conda/commit/c2c07215c0d57a5149fafff4fa1d5cd05a256c0e)) by [@gha3mi](https://github.com/gha3mi)
+* Update README.md status table [ci skip] (#159) ([0951a369](https://github.com/gha3mi/setup-fortran-conda/commit/0951a36989eb244b29721ae63591d9b520b7f819)) by [@gha3mi](https://github.com/gha3mi)
+* Update README.md status table [ci skip] (#160) ([9eb85d29](https://github.com/gha3mi/setup-fortran-conda/commit/9eb85d298094bb433e163d78e7f798ee2c64c6fd)) by [@gha3mi](https://github.com/gha3mi)
+* Improve logging and update CI/CD workflow reference (#161) ([0ff68f6a](https://github.com/gha3mi/setup-fortran-conda/commit/0ff68f6ae2910e98eb9d314d87236c3cc27ae425)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.15.0...v0.15.1](https://github.com/gha3mi/setup-fortran-conda/compare/v0.15.0...v0.15.1)
+
+## [v0.15.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.14.0...v0.15.0) - 2026-03-15
+
+
+### Features
+
+* feat: add pkg-config to extra packages list ([243cf1a6](https://github.com/gha3mi/setup-fortran-conda/commit/243cf1a6a5917f155dc4c863c4070d41b9211765)) by [@gha3mi](https://github.com/gha3mi)
+
+### Others
+
+* Update README.md status table [ci skip] (#153) ([e4aea3c9](https://github.com/gha3mi/setup-fortran-conda/commit/e4aea3c9b1884b387d025c5c3c5ea4a1c702fecd)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.14.0...v0.15.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.14.0...v0.15.0)
+
+## [v0.14.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.13.1...v0.14.0) - 2026-03-04
+
+
+### Features
+
+* feat: auto-detect latest NVIDIA HPC SDK version (#151) ([87599c4e](https://github.com/gha3mi/setup-fortran-conda/commit/87599c4ec9c6700a08e32eb3ee50ecbcfd8e7ac9)) by [@gha3mi](https://github.com/gha3mi)
+
+### Others
+
+* update README.md status table ([#150](https://github.com/gha3mi/setup-fortran-conda/pull/150)) by [@gha3mi](https://github.com/gha3mi)
+* update README.md status table ([#149](https://github.com/gha3mi/setup-fortran-conda/pull/149)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.13.1...v0.14.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.13.1...v0.14.0)
+
+## [v0.13.1](https://github.com/gha3mi/setup-fortran-conda/compare/v0.13.0...v0.13.1) - 2026-02-27
+
+
+### Others
+
+* chore(deps): bump actions/upload-artifact from 4 to 7 ([#148](https://github.com/gha3mi/setup-fortran-conda/pull/148)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* chore(deps): bump actions/download-artifact from 4 to 8 ([#147](https://github.com/gha3mi/setup-fortran-conda/pull/147)) by [@dependabot[bot]](https://github.com/dependabot[bot])
+* update README.md status table ([#146](https://github.com/gha3mi/setup-fortran-conda/pull/146)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.13.0...v0.13.1](https://github.com/gha3mi/setup-fortran-conda/compare/v0.13.0...v0.13.1)
+
+## [v0.13.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.12.0...v0.13.0) - 2026-02-27
+
+
+### Features
+
+* feat: new README table ([740ce90](https://github.com/gha3mi/setup-fortran-conda/commit/740ce900ff0c7fca07ade8e4a6163f39908a4caf)) by [@gha3mi](https://github.com/gha3mi)
+* feat: compact README status table and add OS version ([c6c2cbb](https://github.com/gha3mi/setup-fortran-conda/commit/c6c2cbba8ac5fcbc492b0fcefefad4204e873b56)) by [@gha3mi](https://github.com/gha3mi)
+
+### Fixes
+
+* fix: update dependencies for README status table update job ([b1076e3](https://github.com/gha3mi/setup-fortran-conda/commit/b1076e338e92880baa4a0a7beee2402e68338888)) by [@gha3mi](https://github.com/gha3mi)
+
+### Others
+
+* update README.md status table ([#144](https://github.com/gha3mi/setup-fortran-conda/pull/144)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.12.0...v0.13.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.12.0...v0.13.0)
+
+## [v0.12.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.5...v0.12.0) - 2026-02-26
+
+
+### Features
+
+* feat: add optional fpm version input ([918857d](https://github.com/gha3mi/setup-fortran-conda/commit/918857d3dcb364aae00aa70631b88108303bfe84)) by [@gha3mi](https://github.com/gha3mi)
+* feat: add optional fpm version input ([5121296](https://github.com/gha3mi/setup-fortran-conda/commit/512129693b50c80cded641a2385377cdb6f03ebb)) by [@gha3mi](https://github.com/gha3mi)
+
+### Fixes
+
+* fix: avoid miniconda setup when not needed ([d823a9c](https://github.com/gha3mi/setup-fortran-conda/commit/d823a9cea9f9de614eb412a28ed2eb07c4620bd5)) by [@gha3mi](https://github.com/gha3mi)
+* fix: remove unnecessary wait time in job runs ([9597e6c](https://github.com/gha3mi/setup-fortran-conda/commit/9597e6c66dabd543e8b68e4277dc68e6055520b3)) by [@gha3mi](https://github.com/gha3mi)
+* fix: suppress output during Homebrew GCC installation ([46e93d3](https://github.com/gha3mi/setup-fortran-conda/commit/46e93d3b3fae4eac0b2da7b8e9261f63cbe07340)) by [@gha3mi](https://github.com/gha3mi)
+
+### Others
+
+* refactor: remove platform input ([73bd6e7](https://github.com/gha3mi/setup-fortran-conda/commit/73bd6e764480ba17961c85a1fa4d4ec32d059795)) by [@gha3mi](https://github.com/gha3mi)
+* refactor: move STATUS.md generation to separate scripts ([3665c72](https://github.com/gha3mi/setup-fortran-conda/commit/3665c72c30002cbf364d90eb71cb3d388ee08eb6)) by [@gha3mi](https://github.com/gha3mi)
+* revert back to latest [skip ci] ([36e233b](https://github.com/gha3mi/setup-fortran-conda/commit/36e233b4997d1d99abd4bef943474e3b7e2a61c0)) by [@gha3mi](https://github.com/gha3mi)
+
+
+### Contributors
+- [@gha3mi](https://github.com/gha3mi)
+
+
+
+Full Changelog: [v0.11.5...v0.12.0](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.5...v0.12.0)
+
 ## [v0.11.5](https://github.com/gha3mi/setup-fortran-conda/compare/v0.11.4...v0.11.5) - 2026-01-29
 
 

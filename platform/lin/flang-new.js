@@ -31,7 +31,7 @@ async function getCondaPrefix(envName) {
 
 // Optional: Set unlimited ulimits for Linux
 function setLinuxUlimits() {
-  startGroup('Setting unlimited ulimits (Linux)');
+  startGroup('setup-fortran-conda: Configure Linux Environment');
   const ulimitCmd =
     'ulimit -c unlimited -d unlimited -f unlimited -m unlimited -s unlimited -t unlimited -v unlimited -x unlimited';
   const script = `${process.env.RUNNER_TEMP}/ulimit.sh`;
@@ -49,16 +49,12 @@ export async function setup(version = '') {
 
   // Define the set of Conda packages to install
   const packages = [
-    version ? `flang_linux-64=${version}` : 'flang_linux-64',
-    version ? `libflang-rt=${version}` : 'libflang-rt',
-    version ? `llvm=${version}` : 'llvm',
+    version ? `flang=${version}` : 'flang',
     version ? `clangxx=${version}` : 'clangxx',
-    version ? `clang-tools=${version}` : 'clang-tools',
-    version ? `llvm-openmp=${version}` : 'llvm-openmp',
-    version ? `lld=${version}` : 'lld'
+    'libflang-rt'
   ];
 
-  startGroup('Installing Conda packages');
+  startGroup('setup-fortran-conda: Install Conda Packages');
   try {
     await _exec('conda', [
       'install',
@@ -67,10 +63,7 @@ export async function setup(version = '') {
       'fortran',
       ...packages,
       '-c',
-      'conda-forge',
-      '--update-all',
-      '--all',
-      '--force-reinstall'
+      'conda-forge'
     ]);
     info('Conda packages installed');
   } catch (err) {
@@ -79,7 +72,7 @@ export async function setup(version = '') {
   endGroup();
 
   // Conda environment information
-  startGroup('Conda environment information');
+  startGroup('setup-fortran-conda: Show Conda Environment');
   await _exec('conda', ['info']);
   await _exec('conda', ['list', '--name', 'fortran']);
   endGroup();
@@ -89,7 +82,7 @@ export async function setup(version = '') {
   const binPath = join(prefix, 'bin');
   const libPath = join(prefix, 'lib');
 
-  startGroup('Setting up environment paths');
+  startGroup('setup-fortran-conda: Configure Compiler Paths');
   const paths = [binPath];
   for (const p of paths) {
     if (existsSync(p)) {
@@ -105,7 +98,7 @@ export async function setup(version = '') {
   info(`Set LD_LIBRARY_PATH → ${ldPath}`);
 
   // Verify that the compilers are installed and working
-  startGroup('Verifying compiler versions');
+  startGroup('setup-fortran-conda: Verify Compiler Commands');
   await _exec('which', ['flang']);
   await _exec('flang', ['--version']);
   await _exec('which', ['clang']);
@@ -115,7 +108,7 @@ export async function setup(version = '') {
   endGroup();
 
   // Export compiler-related environment variables
-  startGroup('Exporting compiler environment variables');
+  startGroup('setup-fortran-conda: Export Compiler Environment');
   const envVars = {
     FC: 'flang',
     CC: 'clang',
@@ -138,7 +131,7 @@ export async function setup(version = '') {
   setLinuxUlimits();
 
   // Export all environment variables to process.env and GITHUB_ENV
-  startGroup('Exporting all environment variables to process.env and GITHUB_ENV');
+  startGroup('setup-fortran-conda: Export Process Environment');
   for (const [key, value] of Object.entries(env)) {
     if (typeof value === 'string') {
       try {

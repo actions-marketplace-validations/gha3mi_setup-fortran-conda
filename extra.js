@@ -1,11 +1,13 @@
 import { exec as _exec } from '@actions/exec';
-import { startGroup, endGroup, info } from '@actions/core';
+import { startGroup, endGroup } from '@actions/core';
 
-export async function installExtras(env = 'fortran', extras = []) {
-  const pkgs = ['fpm', 'cmake', 'ninja', 'meson', ...extras.map(p => p.trim()).filter(Boolean)];
+export async function installExtras(env = 'fortran', extras = [], fpmVersion = '') {
+  const v = (fpmVersion || '').trim().toLowerCase();
+  const fpmPkg = (!v || v === 'latest') ? 'fpm' : `fpm=${v}`;
+  const pkgs = [fpmPkg,'pkg-config', 'cmake', 'ninja', 'meson', ...extras.map(p => p.trim()).filter(Boolean)];
   if (!pkgs.length) return;
 
-  startGroup(`Installing extra packages: ${pkgs.join(', ')}`);
+  startGroup('setup-fortran-conda: Install Extra Packages');
   await _exec('conda', [
     'install',
     '--yes',
@@ -13,11 +15,7 @@ export async function installExtras(env = 'fortran', extras = []) {
     env,
     '-c',
     'conda-forge',
-    ...pkgs,
-    '--update-all',
-    '--all',
-    '--force-reinstall'
+    ...pkgs
   ]);
   endGroup();
-
 }

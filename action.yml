@@ -1,5 +1,5 @@
 name: Setup Fortran with Conda
-description: Installs Fortran compilers and extra packages using Conda. Optionally builds and deploys FORD and/or Doxygen docs.
+description: Installs Fortran compilers and extra packages using Conda or vendor packages. Optionally builds docs and updates README status/dependency graphs.
 author: Seyed Ali Ghasemi
 branding:
   icon: 'check'
@@ -7,7 +7,7 @@ branding:
 
 inputs:
   compiler:
-    description: "Fortran compiler to install (gfortran, ifx, lfortran, flang)"
+    description: "Fortran compiler to install (gfortran, ifx, lfortran, flang, flang-new, nvfortran, aocc, aomp, mpifort)"
     required: false
     default: ""
   compiler-version:
@@ -20,6 +20,10 @@ inputs:
     default: ""
   extra-packages:
     description: "List of additional Conda packages (e.g., cmake ninja)"
+    required: false
+    default: ""
+  fpm-version:
+    description: "fpm version to install. Empty means latest."
     required: false
     default: ""
   checkout-repo:
@@ -108,8 +112,25 @@ inputs:
     description: "Git user.email for README.md update commit"
     required: false
   update-readme-token:
-    description: "GitHub token used to create the PR for updating the README table"
+    description: "GitHub token used to create README update PRs"
     required: false
+
+  update-readme-dependencies:
+    description: "Generate and inject one fpm dependency graph into README.md. Supported values: false, fpm-deps, fpm-modules"
+    required: false
+    default: "false"
+  dependency-graph-working-directory:
+    description: "Directory containing fpm.toml for README dependency graph generation"
+    required: false
+    default: "."
+  dependency-graph-readme-file:
+    description: "README file to update with the dependency graph"
+    required: false
+    default: "README.md"
+  dependency-graph-options:
+    description: "Extra one-line CLI options passed to the selected dependency graph tool"
+    required: false
+    default: ""
 
   fortitude-check:
     description: "Run Fortitude check (https://github.com/PlasmaFAIR/fortitude)"
@@ -125,25 +146,73 @@ runs:
   steps:
     - name: Checkout repository
       if: ${{ inputs.checkout-repo == 'true' || inputs.generate-doc-ford == 'true' || inputs.generate-doc-doxygen == 'true' }}
-      uses: actions/checkout@v6.0.2
+      uses: actions/checkout@v6.0.3
+
+    - name: Validate README update mode
+      if: ${{ inputs.update-readme-table == 'true' && inputs.update-readme-dependencies != 'false' }}
+      shell: bash
+      run: |
+        echo "::error::Use separate jobs for update-readme-table and update-readme-dependencies."
+        exit 1
+
+    - name: Validate README dependency graph tool
+      if: ${{ inputs.update-readme-dependencies != 'false' && inputs.update-readme-dependencies != 'fpm-deps' && inputs.update-readme-dependencies != 'fpm-modules' }}
+      shell: bash
+      run: |
+        echo "::error::update-readme-dependencies must be false, fpm-deps, or fpm-modules."
+        exit 1
+
+    - name: Validate README dependency graph platform
+      if: ${{ inputs.update-readme-dependencies != 'false' && runner.os != 'Linux' }}
+      shell: bash
+      run: |
+        echo "::error::README dependency graph generation currently supports Linux runners only."
+        exit 1
 
     - name: Setup Miniconda
-      uses: conda-incubator/setup-miniconda@v3.3.0
+      if: >-
+        ${{
+          inputs.compiler != '' ||
+          inputs.generate-doc-ford == 'true' ||
+          inputs.generate-doc-doxygen == 'true' ||
+          inputs.update-readme-dependencies != 'false' ||
+          inputs.fortitude-check == 'true'
+        }}
+      uses: conda-incubator/setup-miniconda@v4.0.1
       with:
         auto-update-conda: true
         activate-environment: fortran
         channels: conda-forge, defaults
 
     - name: Run Fortran compiler setup script
-      if: ${{ inputs.compiler != '' && inputs.platform != '' }}
+      id: setup_fortran
+      if: ${{ inputs.compiler != '' || inputs.update-readme-dependencies != 'false' }}
       shell: bash
-      run: |
-        node "${{ github.action_path }}/index.js"
+      run: node "${{ github.action_path }}/index.js"
       env:
-        INPUT_COMPILER: ${{ inputs.compiler }}
+        INPUT_COMPILER: ${{ inputs.compiler != '' && inputs.compiler || 'gfortran' }}
         INPUT_COMPILER_VERSION: ${{ inputs.compiler-version }}
-        INPUT_PLATFORM: ${{ inputs.platform }}
+        INPUT_PLATFORM: ${{ inputs.platform != '' && inputs.platform || runner.os }}
         INPUT_EXTRA_PACKAGES: ${{ inputs.extra-packages }}
+        INPUT_FPM_VERSION: ${{ inputs.fpm-version }}
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Upload setup-fortran-conda metadata
+      if: >-
+        ${{
+          always() &&
+          inputs.compiler != '' &&
+          inputs.fortitude-check != 'true' &&
+          inputs.generate-doc-ford != 'true' &&
+          inputs.generate-doc-doxygen != 'true' &&
+          inputs.update-readme-dependencies == 'false' &&
+          inputs.generate-status-table != 'true' &&
+          inputs.update-readme-table != 'true'
+        }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ steps.setup_fortran.outputs.metadata-artifact-name }}
+        path: ${{ steps.setup_fortran.outputs.metadata-path }}
 
     - name: Install and Run Fortitude Linter
       if: ${{ inputs.fortitude-check == 'true' }}
@@ -152,11 +221,14 @@ runs:
         source "${CONDA}/etc/profile.d/conda.sh"
         conda activate fortran
 
-        echo "::group:: Installing Fortitude"
-        pip install fortitude-lint
+        echo "::group:: setup-fortran-conda: Install Fortitude"
+        pip install fortitude-lint || {
+          status=$?
+          echo "::endgroup::"
+          exit $status
+        }
         echo "::endgroup::"
 
-        echo "Running Fortitude with settings: ${{ inputs.fortitude-settings }}"
         fortitude check ${{ inputs.fortitude-settings }}
 
     - name: Build FORD documentation
@@ -165,13 +237,17 @@ runs:
       run: |
         source "${CONDA}/etc/profile.d/conda.sh"
         conda activate fortran
-        echo "::group:: Setting up FORD documentation"
+
+        echo "::group:: setup-fortran-conda: Prepare FORD Docs"
         conda install -y pip graphviz
         pip install ford
         mkdir -p "${{ inputs.ford-output-directory }}"
         cd "${{ inputs.ford-working-directory }}"
         echo "::endgroup::"
+
+        echo "::group:: setup-fortran-conda: Build FORD Docs"
         ford "${{ inputs.ford-config }}"
+        echo "::endgroup::"
 
     - name: Deploy FORD documentation
       if: ${{ inputs.generate-doc-ford == 'true' }}
@@ -189,12 +265,16 @@ runs:
       run: |
         source "${CONDA}/etc/profile.d/conda.sh"
         conda activate fortran
-        echo "::group:: Setting up Doxygen documentation"
+
+        echo "::group:: setup-fortran-conda: Prepare Doxygen Docs"
         conda install -y graphviz doxygen
         mkdir -p "${{ inputs.doxygen-output-directory }}"
         cd "${{ inputs.doxygen-working-directory }}"
         echo "::endgroup::"
+
+        echo "::group:: setup-fortran-conda: Build Doxygen Docs"
         doxygen "${{ inputs.doxygen-config }}"
+        echo "::endgroup::"
 
     - name: Deploy Doxygen documentation
       if: ${{ inputs.generate-doc-doxygen == 'true' }}
@@ -214,50 +294,9 @@ runs:
         REPO: ${{ github.repository }}
         RUN_ID: ${{ github.run_id }}
       run: |
-        echo "Waiting 60s to ensure all jobs are visible in GitHub API..."
-        sleep 60
-
-        echo "Generating STATUS.md for test_fpm..."
-        badge_line=""
-
-        mapfile -t job_lines < <(
-          curl -s -H "Authorization: token $GH_TOKEN" \
-            https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/jobs?per_page=100 \
-            | jq -r '.jobs[] | select((.name | type == "string") and (.name | test(".*_fpm$"))) | [.name, .conclusion] | @tsv'
-        )
-
-        for line in "${job_lines[@]}"; do
-          name="${line%%$'\t'*}"
-          conclusion="${line#*$'\t'}"
-
-          os="${name%%_*}"
-          compiler="${name#*_}"
-          key="${os}_${compiler}"
-
-          safe_key="${key//-/'--'}"
-
-          if [[ "$conclusion" == "success" ]]; then
-            color="brightgreen"
-            label="passing"
-          elif [[ "$conclusion" == "failure" ]]; then
-            color="red"
-            label="failing"
-          elif [[ "$conclusion" == "cancelled" ]]; then
-            color="lightgrey"
-            label="cancelled"
-          else
-            color="lightgrey"
-            label="pending"
-          fi
-
-          badge="![${key}](https://img.shields.io/badge/${safe_key}-${label}-${color})"
-          badge_line="$badge_line $badge"
-        done
-
-        echo "$badge_line" > STATUS.md
-        mkdir -p status-fpm
-        mv STATUS.md status-fpm/STATUS.md
-        cat status-fpm/STATUS.md
+        echo "::group:: setup-fortran-conda: Generate FPM Status"
+        bash "${{ github.action_path }}/scripts/generate-status-fpm.sh"
+        echo "::endgroup::"
 
     - name: Deploy STATUS.md (test_fpm)
       if: ${{ inputs.generate-status-fpm == 'true' }}
@@ -276,50 +315,9 @@ runs:
         REPO: ${{ github.repository }}
         RUN_ID: ${{ github.run_id }}
       run: |
-        echo "Waiting 60s to ensure all jobs are visible in GitHub API..."
-        sleep 60
-
-        echo "Generating STATUS.md for test_cmake..."
-        badge_line=""
-
-        mapfile -t job_lines < <(
-          curl -s -H "Authorization: token $GH_TOKEN" \
-            https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/jobs?per_page=100 \
-            | jq -r '.jobs[] | select((.name | type == "string") and (.name | test(".*_cmake$"))) | [.name, .conclusion] | @tsv'
-        )
-
-        for line in "${job_lines[@]}"; do
-          name="${line%%$'\t'*}"
-          conclusion="${line#*$'\t'}"
-
-          os="${name%%_*}"
-          compiler="${name#*_}"
-          key="${os}_${compiler}"
-
-          safe_key="${key//-/'--'}"
-
-          if [[ "$conclusion" == "success" ]]; then
-            color="brightgreen"
-            label="passing"
-          elif [[ "$conclusion" == "failure" ]]; then
-            color="red"
-            label="failing"
-          elif [[ "$conclusion" == "cancelled" ]]; then
-            color="lightgrey"
-            label="cancelled"
-          else
-            color="lightgrey"
-            label="pending"
-          fi
-
-          badge="![${key}](https://img.shields.io/badge/${safe_key}-${label}-${color})"
-          badge_line="$badge_line $badge"
-        done
-
-        echo "$badge_line" > STATUS.md
-        mkdir -p status-cmake
-        mv STATUS.md status-cmake/STATUS.md
-        cat status-cmake/STATUS.md
+        echo "::group:: setup-fortran-conda: Generate CMake Status"
+        bash "${{ github.action_path }}/scripts/generate-status-cmake.sh"
+        echo "::endgroup::"
 
     - name: Deploy STATUS.md (test_cmake)
       if: ${{ inputs.generate-status-cmake == 'true' }}
@@ -338,50 +336,9 @@ runs:
         REPO: ${{ github.repository }}
         RUN_ID: ${{ github.run_id }}
       run: |
-        echo "Waiting 60s to ensure all jobs are visible in GitHub API..."
-        sleep 60
-
-        echo "Generating STATUS.md for test_meson..."
-        badge_line=""
-
-        mapfile -t job_lines < <(
-          curl -s -H "Authorization: token $GH_TOKEN" \
-            https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/jobs?per_page=100 \
-            | jq -r '.jobs[] | select((.name | type == "string") and (.name | test(".*_meson$"))) | [.name, .conclusion] | @tsv'
-        )
-
-        for line in "${job_lines[@]}"; do
-          name="${line%%$'\t'*}"
-          conclusion="${line#*$'\t'}"
-
-          os="${name%%_*}"
-          compiler="${name#*_}"
-          key="${os}_${compiler}"
-
-          safe_key="${key//-/'--'}"
-
-          if [[ "$conclusion" == "success" ]]; then
-            color="brightgreen"
-            label="passing"
-          elif [[ "$conclusion" == "failure" ]]; then
-            color="red"
-            label="failing"
-          elif [[ "$conclusion" == "cancelled" ]]; then
-            color="lightgrey"
-            label="cancelled"
-          else
-            color="lightgrey"
-            label="pending"
-          fi
-
-          badge="![${key}](https://img.shields.io/badge/${safe_key}-${label}-${color})"
-          badge_line="$badge_line $badge"
-        done
-
-        echo "$badge_line" > STATUS.md
-        mkdir -p status-meson
-        mv STATUS.md status-meson/STATUS.md
-        cat status-meson/STATUS.md
+        echo "::group:: setup-fortran-conda: Generate Meson Status"
+        bash "${{ github.action_path }}/scripts/generate-status-meson.sh"
+        echo "::endgroup::"
 
     - name: Deploy STATUS.md (test_meson)
       if: ${{ inputs.generate-status-meson == 'true' }}
@@ -392,38 +349,110 @@ runs:
         clean: true
         commit-message: "Deploy meson status"
 
-    - name: Generate and Inject CI Matrix into README
+    - name: Checkout repository (for README update)
+      if: ${{ inputs.update-readme-table == 'true' || inputs.update-readme-dependencies != 'false' }}
+      uses: actions/checkout@v6.0.3
+      with:
+        persist-credentials: false
+
+    - name: Download setup-fortran-conda metadata artifacts
+      if: ${{ inputs.generate-status-table == 'true' || inputs.update-readme-table == 'true' }}
+      uses: actions/download-artifact@v8
+      with:
+        pattern: setup-fortran-conda-meta-*
+        path: ${{ runner.temp }}/setup-fortran-conda-meta
+        merge-multiple: true
+
+    - name: Generate and Inject CI Matrix into README (metadata-based)
       if: ${{ inputs.generate-status-table == 'true' }}
       shell: bash
       run: |
-        bash "${{ github.action_path }}/scripts/update-readme-status.sh"
-
-    - name: Checkout repository (for README update)
-      if: ${{ inputs.update-readme-table == 'true' }}
-      uses: actions/checkout@v6.0.2
-      with:
-        persist-credentials: false
+        echo "::group:: setup-fortran-conda: Generate README Matrix"
+        node "${{ github.action_path }}/scripts/update-readme-matrix-table.js"
+        echo "::endgroup::"
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        SETUP_FORTRAN_CONDA_META_DIR: ${{ runner.temp }}/setup-fortran-conda-meta
+        README_FILE: README.md
 
     - name: Generate status table in README
       if: ${{ inputs.update-readme-table == 'true' }}
       shell: bash
       run: |
-        bash "${{ github.action_path }}/scripts/update-readme-status.sh"
+        echo "::group:: setup-fortran-conda: Update README Status"
+        node "${{ github.action_path }}/scripts/update-readme-matrix-table.js"
+        echo "::endgroup::"
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        SETUP_FORTRAN_CONDA_META_DIR: ${{ runner.temp }}/setup-fortran-conda-meta
+        README_FILE: README.md
+
+    - name: Generate fpm package dependency graph in README
+      if: ${{ inputs.update-readme-dependencies == 'fpm-deps' }}
+      shell: bash
+      run: |
+        source "${CONDA}/etc/profile.d/conda.sh"
+        conda activate fortran
+
+        echo "::group:: setup-fortran-conda: Update README fpm Dependency Graph"
+        node "${{ github.action_path }}/scripts/update-readme-fpm-deps.js"
+        echo "::endgroup::"
+      env:
+        DEPENDENCY_GRAPH_WORKING_DIRECTORY: ${{ inputs.dependency-graph-working-directory }}
+        DEPENDENCY_GRAPH_README_FILE: ${{ inputs.dependency-graph-readme-file }}
+        DEPENDENCY_GRAPH_OPTIONS: ${{ inputs.dependency-graph-options }}
+
+    - name: Generate Fortran module dependency graph in README
+      if: ${{ inputs.update-readme-dependencies == 'fpm-modules' }}
+      shell: bash
+      run: |
+        source "${CONDA}/etc/profile.d/conda.sh"
+        conda activate fortran
+
+        echo "::group:: setup-fortran-conda: Update README Module Dependency Graph"
+        node "${{ github.action_path }}/scripts/update-readme-fpm-modules.js"
+        echo "::endgroup::"
+      env:
+        DEPENDENCY_GRAPH_WORKING_DIRECTORY: ${{ inputs.dependency-graph-working-directory }}
+        DEPENDENCY_GRAPH_README_FILE: ${{ inputs.dependency-graph-readme-file }}
+        DEPENDENCY_GRAPH_OPTIONS: ${{ inputs.dependency-graph-options }}
 
     - name: Setup Git author
-      if: ${{ inputs.update-readme-table == 'true' }}
+      if: ${{ inputs.update-readme-table == 'true' || inputs.update-readme-dependencies != 'false' }}
       shell: bash
       run: |
         git config user.name "${{ inputs.update-readme-user-name }}"
         git config user.email "${{ inputs.update-readme-user-email }}"
 
-    - name: Create Pull Request for README table
+    - name: Create Pull Request for README status table
       if: ${{ inputs.update-readme-table == 'true' }}
-      uses: peter-evans/create-pull-request@v8.1.0
+      uses: peter-evans/create-pull-request@v8.1.1
       with:
         token: "${{ inputs.update-readme-token }}"
         commit-message: "Update README.md status table [ci skip]"
         branch: update/readme-status-table
         title: "update README.md status table"
         body: "This PR updates the CI status table in the README.md."
+        delete-branch: true
+
+    - name: Create Pull Request for fpm dependency graph
+      if: ${{ inputs.update-readme-dependencies == 'fpm-deps' }}
+      uses: peter-evans/create-pull-request@v8.1.1
+      with:
+        token: "${{ inputs.update-readme-token }}"
+        commit-message: "Update README.md fpm dependency graph [ci skip]"
+        branch: update/readme-fpm-deps
+        title: "update README.md fpm dependency graph"
+        body: "This PR updates the fpm package dependency graph in the README.md."
+        delete-branch: true
+
+    - name: Create Pull Request for module dependency graph
+      if: ${{ inputs.update-readme-dependencies == 'fpm-modules' }}
+      uses: peter-evans/create-pull-request@v8.1.1
+      with:
+        token: "${{ inputs.update-readme-token }}"
+        commit-message: "Update README.md module dependency graph [ci skip]"
+        branch: update/readme-fpm-modules
+        title: "update README.md module dependency graph"
+        body: "This PR updates the Fortran module dependency graph in the README.md."
         delete-branch: true

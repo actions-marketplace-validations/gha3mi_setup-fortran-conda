@@ -31,7 +31,7 @@ async function getCondaPrefix(envName) {
 
 // Optional: Set unlimited ulimits for Linux
 function setLinuxUlimits() {
-  startGroup('Setting unlimited ulimits (Linux)');
+  startGroup('setup-fortran-conda: Configure Linux Environment');
   const ulimitCmd =
     'ulimit -c unlimited -d unlimited -f unlimited -m unlimited -s unlimited -t unlimited -v unlimited -x unlimited';
   const script = `${process.env.RUNNER_TEMP}/ulimit.sh`;
@@ -55,7 +55,7 @@ export async function setup(version = '') {
     'binutils'
   ];
 
-  startGroup('Installing Conda packages');
+  startGroup('setup-fortran-conda: Install Conda Packages');
   try {
     await _exec('conda', [
       'install',
@@ -64,10 +64,7 @@ export async function setup(version = '') {
       'fortran',
       ...packages,
       '-c',
-      'conda-forge',
-      '--update-all',
-      '--all',
-      '--force-reinstall'
+      'conda-forge'
     ]);
     info('Conda packages installed');
   } catch (err) {
@@ -76,7 +73,7 @@ export async function setup(version = '') {
   endGroup();
 
   // Conda environment information
-  startGroup('Conda environment information');
+  startGroup('setup-fortran-conda: Show Conda Environment');
   await _exec('conda', ['info']);
   await _exec('conda', ['list', '--name', 'fortran']);
   endGroup();
@@ -84,14 +81,14 @@ export async function setup(version = '') {
   const prefix = await getCondaPrefix('fortran');
   const binPath = join(prefix, 'bin');
 
-  startGroup('Setting up environment paths');
+  startGroup('setup-fortran-conda: Configure Compiler Paths');
   if (existsSync(binPath)) {
     addPath(binPath);
     info(`Added to PATH: ${binPath}`);
   }
   endGroup();
 
-  startGroup('Verifying compiler versions');
+  startGroup('setup-fortran-conda: Verify Compiler Commands');
   await _exec('which', ['gfortran']);
   await _exec('gfortran', ['--version']);
   await _exec('which', ['gcc']);
@@ -100,7 +97,7 @@ export async function setup(version = '') {
   await _exec('g++', ['--version']);
   endGroup();
 
-  startGroup('Exporting compiler environment variables');
+  startGroup('setup-fortran-conda: Export Compiler Environment');
   const envVars = {
     FC: 'gfortran',
     CC: 'gcc',
@@ -122,7 +119,7 @@ export async function setup(version = '') {
 
   setLinuxUlimits();
 
-  startGroup('Exporting all environment variables to process.env and GITHUB_ENV');
+  startGroup('setup-fortran-conda: Export Process Environment');
   for (const [key, value] of Object.entries(env)) {
     if (typeof value === 'string') {
       try {

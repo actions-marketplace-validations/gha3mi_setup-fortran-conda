@@ -1,7 +1,7 @@
 import { startGroup, endGroup, addPath, info } from '@actions/core';
 import { exec as _exec } from '@actions/exec';
 import { sep, join } from 'path';
-import { existsSync, appendFileSync } from 'fs';
+import { existsSync, appendFileSync, readdirSync } from 'fs';
 import { EOL } from 'os';
 import { env, platform } from 'process';
 
@@ -30,7 +30,7 @@ async function runVcvars64() {
     throw new Error('"vswhere" not found in PATH. Ensure Visual Studio is installed.');
   }
 
-  startGroup('Detecting Visual Studio installation');
+  startGroup('setup-fortran-conda: Detect Visual Studio Installation');
 
   // Query the latest Visual Studio installation path
   let vsPath = '';
@@ -59,7 +59,7 @@ async function runVcvars64() {
     throw new Error(`vcvars64.bat not found at expected path: ${vcvars}`);
   }
 
-  startGroup('Running vcvars64.bat');
+  startGroup('setup-fortran-conda: Initialize MSVC Environment');
 
   // Run vcvars64.bat and capture the resulting environment variables
   let output = '';
@@ -80,7 +80,7 @@ async function runVcvars64() {
 
   endGroup();
 
-  startGroup('Exporting MSVC environment variables');
+  startGroup('setup-fortran-conda: Export MSVC Environment');
 
   // Parse and export environment variables line-by-line
   let exportedCount = 0;
@@ -114,6 +114,18 @@ async function getCondaPrefix(envName) {
   throw new Error(`Unable to locate Conda environment "${envName}".`);
 }
 
+function getClangRuntimeLibPaths(prefix) {
+  const clangRoot = join(prefix, 'Library', 'lib', 'clang');
+  if (!existsSync(clangRoot)) return [];
+
+  return readdirSync(clangRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+    .map((version) => join(clangRoot, version, 'lib', 'x86_64-pc-windows-msvc'))
+    .filter((p) => existsSync(p));
+}
+
 // Main setup function to configure compilers and environment
 export async function setup(version = '') {
   // Ensure this only runs on Windows
@@ -124,11 +136,7 @@ export async function setup(version = '') {
   // Define the set of Conda packages to install
   const packages = [
     version ? `flang=${version}` : 'flang',
-    version ? `flang-rt_win-64=${version}` : 'flang-rt_win-64',
-    version ? `llvm=${version}` : 'llvm',
-    version ? `clang-tools=${version}` : 'clang-tools',
-    version ? `llvm-openmp=${version}` : 'llvm-openmp',
-    version ? `lld=${version}` : 'lld'
+    'flang-rt_win-64'
   ];
 
 
@@ -136,7 +144,7 @@ export async function setup(version = '') {
   await runVcvars64();
 
   // Install required compilers and tools via Conda
-  startGroup('Installing Conda packages');
+  startGroup('setup-fortran-conda: Install Conda Packages');
   try {
     await _exec('conda', [
       'install',
@@ -145,10 +153,7 @@ export async function setup(version = '') {
       'fortran',
       ...packages,
       '-c',
-      'conda-forge',
-      '--update-all',
-      '--all',
-      '--force-reinstall'
+      'conda-forge'
     ]);
     info('Conda packages installed');
   } catch (err) {
@@ -157,7 +162,7 @@ export async function setup(version = '') {
   endGroup();
 
   // Conda environment information
-  startGroup('Conda environment information');
+  startGroup('setup-fortran-conda: Show Conda Environment');
   await _exec('conda', ['info']);
   await _exec('conda', ['list', '--name', 'fortran']);
   endGroup();
@@ -169,9 +174,10 @@ export async function setup(version = '') {
   const usrBinPath = join(prefix, 'Library', 'usr', 'bin');
   const scriptsPath = join(prefix, 'Scripts');
   const libPath = join(prefix, 'Library', 'lib');
+  const runtimeLibPaths = getClangRuntimeLibPaths(prefix);
 
-  startGroup('Setting up environment paths');
-  const paths = [binPath, libBinPath, usrBinPath, scriptsPath, libPath];
+  startGroup('setup-fortran-conda: Configure Compiler Paths');
+  const paths = [binPath, libBinPath, usrBinPath, scriptsPath, libPath, ...runtimeLibPaths];
   for (const p of paths) {
     if (existsSync(p)) {
       addPath(p);
@@ -181,14 +187,15 @@ export async function setup(version = '') {
   endGroup();
 
   // Verify that the compilers are installed and working
-  startGroup('Verifying compiler versions');
+  startGroup('setup-fortran-conda: Verify Compiler Commands');
   await _exec('where', ['flang']);
   await _exec('flang', ['--version']);
   await _exec('where', ['clang-cl']);
   await _exec('clang-cl', ['--version']);
+  endGroup();
 
   // Export compiler-related environment variables
-  startGroup('Exporting compiler environment variables');
+  startGroup('setup-fortran-conda: Export Compiler Environment');
   const envVars = {
     FC: 'flang',
     CC: 'clang-cl',
@@ -200,6 +207,7 @@ export async function setup(version = '') {
     CMAKE_C_COMPILER: 'clang-cl',
     CMAKE_CXX_COMPILER: 'clang-cl',
     INCLUDE: [join(prefix, 'Library', 'include'), process.env.INCLUDE || ''].filter(Boolean).join(';'),
+    LIB: [...runtimeLibPaths, libPath, process.env.LIB || ''].filter(Boolean).join(';'),
     AR: 'lib.exe'
   };
 
@@ -209,7 +217,7 @@ export async function setup(version = '') {
   }
   endGroup();
 
-  startGroup('Exporting all environment variables to process.env and GITHUB_ENV');
+  startGroup('setup-fortran-conda: Export Process Environment');
   for (const [key, value] of Object.entries(env)) {
     if (typeof value === 'string') {
       try {

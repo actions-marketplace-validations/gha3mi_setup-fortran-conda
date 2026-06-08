@@ -31,7 +31,7 @@ async function getCondaPrefix(envName) {
 
 // Optional: Set unlimited ulimits for Linux
 function setLinuxUlimits() {
-  startGroup('Setting unlimited ulimits (Linux)');
+  startGroup('setup-fortran-conda: Configure Linux Environment');
   const ulimitCmd =
     'ulimit -c unlimited -d unlimited -f unlimited -m unlimited -s unlimited -t unlimited -v unlimited -x unlimited';
   const script = `${process.env.RUNNER_TEMP}/ulimit.sh`;
@@ -43,23 +43,36 @@ function setLinuxUlimits() {
 
 // Free up disk space
 async function freeUpDiskSpace() {
-  startGroup('Freeing disk space');
+  startGroup('setup-fortran-conda: Free Disk Space');
   await _exec('sudo', ['rm', '-rf', '/usr/local/lib/android', '/usr/local/android-sdk', '/usr/share/dotnet']);
   endGroup();
 }
 
+async function getLatestNVHPC() {
+  let out = '';
+  await _exec('bash', [
+    '-c',
+    "curl -Ls https://developer.nvidia.com/hpc-sdk-downloads | grep -oE 'hpc-sdk/[0-9]+\\.[0-9]+' | cut -d/ -f2 | sort -V | tail -1"
+  ], {
+    silent: true,
+    listeners: { stdout: d => (out += d.toString()) }
+  });
+
+  return out.trim();
+}
+
 // Main setup function
-export async function setup(version = '26.1') {
+export async function setup(version) {
   if (platform !== 'linux') {
     throw new Error('This setup script is only supported on Linux.');
   }
 
   await freeUpDiskSpace();
 
-  version = version?.trim() || '26.1';
+  version = version?.trim() || await getLatestNVHPC();
 
   // Install NVIDIA HPC SDK via apt
-  startGroup('Installing NVIDIA HPC SDK');
+  startGroup('setup-fortran-conda: Install NVIDIA HPC SDK');
   try {
     await _exec('sudo', [
       'bash', '-c',
@@ -89,7 +102,7 @@ export async function setup(version = '26.1') {
   const condaBin = join(prefix, 'bin');
 
   // Add all relevant bin directories to PATH
-  startGroup('Setting up environment paths');
+  startGroup('setup-fortran-conda: Configure Compiler Paths');
   const paths = [binComp, binMPI, condaBin];
   for (const p of paths) {
     if (existsSync(p)) {
@@ -100,7 +113,7 @@ export async function setup(version = '26.1') {
   endGroup();
 
   // Verify that the compilers are installed and working
-  startGroup('Verifying compiler versions');
+  startGroup('setup-fortran-conda: Verify Compiler Commands');
   await _exec('which', ['nvfortran']);
   await _exec('nvfortran', ['--version']);
   await _exec('which', ['nvc']);
@@ -110,7 +123,7 @@ export async function setup(version = '26.1') {
   endGroup();
 
   // Export compiler-related environment variables
-  startGroup('Exporting compiler environment variables');
+  startGroup('setup-fortran-conda: Export Compiler Environment');
   const envVars = {
     FC: 'nvfortran',
     CC: 'nvc',
@@ -133,7 +146,7 @@ export async function setup(version = '26.1') {
 
   setLinuxUlimits();
 
-  startGroup('Exporting all environment variables to process.env and GITHUB_ENV');
+  startGroup('setup-fortran-conda: Export Process Environment');
   for (const [key, value] of Object.entries(env)) {
     if (typeof value === 'string') {
       try {

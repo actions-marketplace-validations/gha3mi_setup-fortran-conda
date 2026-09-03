@@ -1,5 +1,5 @@
-name: Setup Fortran with Conda
-description: Installs Fortran compilers and extra packages using Conda or vendor packages. Optionally builds docs and updates README status/dependency graphs.
+name: setup-fortran-conda
+description: Configures Fortran, C, C++, MPI and build tools on Ubuntu, macOS and Windows using Conda or vendor packages.
 author: Seyed Ali Ghasemi
 branding:
   icon: 'check'
@@ -7,11 +7,19 @@ branding:
 
 inputs:
   compiler:
-    description: "Fortran compiler to install (gfortran, ifx, lfortran, flang, flang-new, nvfortran, aocc, aomp, mpifort)"
+    description: "Fortran compiler to install (gfortran, ifx, lfortran, flang, flang-new, nvfortran, aocc, aomp)"
     required: false
     default: ""
   compiler-version:
     description: "compiler version"
+    required: false
+    default: ""
+  mpi:
+    description: "MPI implementation to install (none, mpich, openmpi, intelmpi, hpcx)"
+    required: false
+    default: "none"
+  mpi-version:
+    description: "MPI version. Empty or latest selects the newest available version. HPC-X uses the version bundled with NVIDIA HPC SDK."
     required: false
     default: ""
   platform:
@@ -36,7 +44,7 @@ inputs:
     required: false
     default: "false"
   ford-config:
-    description: "Path to FORD config file (e.g., README.md or ford.md)"
+    description: "FORD configuration file relative to ford-working-directory"
     required: false
     default: "README.md"
   ford-branch:
@@ -48,11 +56,11 @@ inputs:
     required: false
     default: "."
   ford-output-directory:
-    description: "Path to generated FORD documentation (used by deployment)"
+    description: "Generated FORD directory relative to the repository root"
     required: false
     default: "doc/ford"
   ford-target-folder:
-    description: "Target folder in repo for deployed FORD docs (used only if branch is main or master)"
+    description: "Target folder on the FORD deployment branch"
     required: false
     default: "doc/ford"
 
@@ -61,7 +69,7 @@ inputs:
     required: false
     default: "false"
   doxygen-config:
-    description: "Path to Doxygen config file (e.g., Doxyfile)"
+    description: "Doxygen configuration file relative to doxygen-working-directory"
     required: false
     default: "Doxyfile"
   doxygen-branch:
@@ -73,11 +81,11 @@ inputs:
     required: false
     default: "."
   doxygen-output-directory:
-    description: "Path to generated Doxygen documentation (used by deployment)"
+    description: "Generated Doxygen directory relative to the repository root"
     required: false
     default: "doc/doxygen"
   doxygen-target-folder:
-    description: "Target folder in repo for deployed Doxygen docs (used only if branch is main or master)"
+    description: "Target folder on the Doxygen deployment branch"
     required: false
     default: "doc/doxygen"
 
@@ -124,7 +132,7 @@ inputs:
     required: false
     default: "."
   dependency-graph-readme-file:
-    description: "README file to update with the dependency graph"
+    description: "README file relative to the repository root"
     required: false
     default: "README.md"
   dependency-graph-options:
@@ -146,7 +154,7 @@ runs:
   steps:
     - name: Checkout repository
       if: ${{ inputs.checkout-repo == 'true' || inputs.generate-doc-ford == 'true' || inputs.generate-doc-doxygen == 'true' }}
-      uses: actions/checkout@v6.0.3
+      uses: actions/checkout@v7.0.1
 
     - name: Validate README update mode
       if: ${{ inputs.update-readme-table == 'true' && inputs.update-readme-dependencies != 'false' }}
@@ -173,6 +181,7 @@ runs:
       if: >-
         ${{
           inputs.compiler != '' ||
+          inputs.mpi != 'none' ||
           inputs.generate-doc-ford == 'true' ||
           inputs.generate-doc-doxygen == 'true' ||
           inputs.update-readme-dependencies != 'false' ||
@@ -186,12 +195,14 @@ runs:
 
     - name: Run Fortran compiler setup script
       id: setup_fortran
-      if: ${{ inputs.compiler != '' || inputs.update-readme-dependencies != 'false' }}
+      if: ${{ inputs.compiler != '' || inputs.mpi != 'none' || inputs.update-readme-dependencies != 'false' }}
       shell: bash
-      run: node "${{ github.action_path }}/index.js"
+      run: node "${{ github.action_path }}/dist/index.js"
       env:
         INPUT_COMPILER: ${{ inputs.compiler != '' && inputs.compiler || 'gfortran' }}
         INPUT_COMPILER_VERSION: ${{ inputs.compiler-version }}
+        INPUT_MPI: ${{ inputs.mpi }}
+        INPUT_MPI_VERSION: ${{ inputs.mpi-version }}
         INPUT_PLATFORM: ${{ inputs.platform != '' && inputs.platform || runner.os }}
         INPUT_EXTRA_PACKAGES: ${{ inputs.extra-packages }}
         INPUT_FPM_VERSION: ${{ inputs.fpm-version }}
@@ -201,7 +212,7 @@ runs:
       if: >-
         ${{
           always() &&
-          inputs.compiler != '' &&
+          (inputs.compiler != '' || inputs.mpi != 'none') &&
           inputs.fortitude-check != 'true' &&
           inputs.generate-doc-ford != 'true' &&
           inputs.generate-doc-doxygen != 'true' &&
@@ -251,7 +262,7 @@ runs:
 
     - name: Deploy FORD documentation
       if: ${{ inputs.generate-doc-ford == 'true' }}
-      uses: JamesIves/github-pages-deploy-action@v4.8.0
+      uses: JamesIves/github-pages-deploy-action@v4.9.0
       with:
         branch: ${{ inputs.ford-branch }}
         folder: ${{ inputs.ford-output-directory }}
@@ -278,7 +289,7 @@ runs:
 
     - name: Deploy Doxygen documentation
       if: ${{ inputs.generate-doc-doxygen == 'true' }}
-      uses: JamesIves/github-pages-deploy-action@v4.8.0
+      uses: JamesIves/github-pages-deploy-action@v4.9.0
       with:
         branch: ${{ inputs.doxygen-branch }}
         folder: ${{ inputs.doxygen-output-directory }}
@@ -300,7 +311,7 @@ runs:
 
     - name: Deploy STATUS.md (test_fpm)
       if: ${{ inputs.generate-status-fpm == 'true' }}
-      uses: JamesIves/github-pages-deploy-action@v4.8.0
+      uses: JamesIves/github-pages-deploy-action@v4.9.0
       with:
         branch: status-fpm
         folder: status-fpm
@@ -321,7 +332,7 @@ runs:
 
     - name: Deploy STATUS.md (test_cmake)
       if: ${{ inputs.generate-status-cmake == 'true' }}
-      uses: JamesIves/github-pages-deploy-action@v4.8.0
+      uses: JamesIves/github-pages-deploy-action@v4.9.0
       with:
         branch: status-cmake
         folder: status-cmake
@@ -342,7 +353,7 @@ runs:
 
     - name: Deploy STATUS.md (test_meson)
       if: ${{ inputs.generate-status-meson == 'true' }}
-      uses: JamesIves/github-pages-deploy-action@v4.8.0
+      uses: JamesIves/github-pages-deploy-action@v4.9.0
       with:
         branch: status-meson
         folder: status-meson
@@ -351,7 +362,7 @@ runs:
 
     - name: Checkout repository (for README update)
       if: ${{ inputs.update-readme-table == 'true' || inputs.update-readme-dependencies != 'false' }}
-      uses: actions/checkout@v6.0.3
+      uses: actions/checkout@v7.0.1
       with:
         persist-credentials: false
 
